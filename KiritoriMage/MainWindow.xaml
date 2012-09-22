@@ -1,0 +1,131 @@
+﻿<Window x:Class="KiritoriMage.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KiritoriMage" Height="600" Width="1024"
+        Loaded="Window_Loaded" ContentRendered="Window_ContentRendered" Closed="Window_Closed"
+        xmlns:local="clr-namespace:KiritoriMage">
+    <Window.Resources>
+        <BitmapImage x:Key="KiritoriMageHelp" UriSource="Images/KiritoriMageHelp.png" />
+        <BitmapImage x:Key="RotateIcon" UriSource="Images/RotateIcon.png" />
+        <BitmapImage x:Key="SaveIcon" UriSource="Images/SaveIcon.png" />
+        
+        <local:ImagePositionConverter x:Key="HorizontalPositionConverter" />
+        <local:ImagePositionConverter x:Key="VerticalPositionConverter" />
+    </Window.Resources>
+    
+    <DockPanel Margin="0,0,0,0" MouseMove="dockPanelRoot_MouseMove" Name="dockPanelRoot">
+        <ToolBar Name="toolbar" DockPanel.Dock="Top">
+            <Button Name="buttonSave" Click="buttonSave_Click">
+                <StackPanel>
+                    <Image Source="{StaticResource SaveIcon}" Width="32" />
+                    <TextBlock HorizontalAlignment="Center">Save</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Name="buttonRotate" Click="buttonRotate_Click">
+                <StackPanel>
+                    <Image Source="{StaticResource RotateIcon}" Width="32"/>
+                    <TextBlock HorizontalAlignment="Center">Rotate</TextBlock>
+                </StackPanel>
+            </Button>
+        </ToolBar>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Name="statusText">
+                    Ready.
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+
+        <ItemsControl
+            Name="horizontalBar"
+            Margin="20,0,0,0" Width="{Binding ElementName=imageMain, Path=ActualWidth}"  Height="20" DockPanel.Dock="Top" HorizontalAlignment="Left"
+            ItemsSource="{Binding Path=HorizontalSplitPositionBarViewModel.PositionList}"
+            MouseLeftButtonDown="horizontalBar_MouseLeftButtonDown" >
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <!-- FIXME: BorderThickness make thumb position incorrect -->
+                    <Border BorderBrush="Gray" BorderThickness="0" Background="LightGray">
+                        <Canvas>
+                            <!-- <Line StrokeThickness="2" Stroke="White" X1="0"  Y1="10" X2="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Parent.ActualWidth, Mode=OneWay}" Y2="10" /> -->
+                            <Label Canvas.ZIndex="0" Height="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Parent.ActualHeight, Mode=OneWay}" ></Label>
+                            <ItemsPresenter/>
+                          </Canvas>
+                    </Border>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Thumb Margin="0,1,0,1" Width="9" Height="18"  DragStarted="HorizontalThumb_DragStarted" DragDelta="HorizontalThumb_DragDelta" DragCompleted="HorizontalThumb_DragCompleted">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Canvas>
+                                    <!-- to make clicking easy -->
+                                    <Rectangle Height="18" Width="18" Opacity="0" Fill="Black"/>
+                                    <Polygon Points="0,0 18,0 0,18" Stroke="Black" Fill="Gray" />
+                                </Canvas>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Canvas.Left" Value="{Binding Path=Position, Converter={StaticResource ResourceKey=HorizontalPositionConverter}}" />
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+        
+        <ItemsControl
+            Name="verticalBar"
+            Margin="0,0,0,0" Width="20" Height="{Binding ElementName=imageMain, Path=ActualHeight}" DockPanel.Dock="Left" VerticalAlignment="Top"
+            ItemsSource="{Binding Path=VerticalSplitPositionBarViewModel.PositionList}"
+            MouseLeftButtonDown="verticalBar_MouseLeftButtonDown">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <Border BorderBrush="Gray" BorderThickness="0" Background="LightGray">
+                        <Canvas >
+                            <!-- <Line StrokeThickness="2" Stroke="White" X1="10" X2="10" Y1="0" Y2="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Parent.ActualHeight, Mode=OneWay}"/> -->
+                            <Label Canvas.ZIndex="0" Height="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Parent.ActualHeight, Mode=OneWay}" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Parent.ActualWidth, Mode=OneWay}"></Label>
+                            <ItemsPresenter/>
+                        </Canvas>
+                    </Border>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Thumb Margin="0,0,0,0" Width="20" Height="20"  DragStarted="VerticalThumb_DragStarted" DragDelta="VerticalThumb_DragDelta" DragCompleted="VerticalThumb_DragCompleted">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="Thumb">
+                                <Canvas>
+                                    <!-- to make clicking easy -->
+                                    <Rectangle Height="20" Width="20" Opacity="0" Fill="Black"/>
+                                    <Polygon Points="0,0 20,0 0,20" Stroke="Black" Fill="Gray" />
+                                </Canvas>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Canvas.Top" Value="{Binding Path=Position, Converter={StaticResource ResourceKey=VerticalPositionConverter}}" />
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+
+        <DockPanel Name="imagePanel" AllowDrop="true" Drop="imagePanel_Drop" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <Image Name="imageMain" Source="{Binding Path=LoadedBitmap, Mode=OneWay}" SizeChanged="imageMain_SizeChanged" MouseLeftButtonDown="imageMain_MouseLeftButtonDown" MouseRightButtonDown="imageMain_MouseRightButtonDown" />
+        </DockPanel>
+    </DockPanel>
+</Window>
