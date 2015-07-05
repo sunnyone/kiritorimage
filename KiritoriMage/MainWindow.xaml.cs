@@ -301,6 +301,7 @@ namespace KiritoriMage
                 if (!rect.HasValue)
                     continue;
 
+#if true
                 CroppedBitmap croppedBitmap = new CroppedBitmap(this.imageViewModel.LoadedBitmap, rect.Value);
                 string filename = String.Format("{0}_{1:000}.jpg", imageBaseName, i);
 
@@ -323,6 +324,12 @@ namespace KiritoriMage
                 }
 
                 savedFileList.Add(System.IO.Path.GetFileName(path));
+#else
+                // dirty / debugging purpose: save range to a file.
+                string filename = String.Format("{0}.txt", imageBaseName);
+                string textPath = System.IO.Path.Combine(imageDir, filename);
+                System.IO.File.AppendAllText(textPath, string.Format("{0},{1} ", rect.Value.X, rect.Value.Width), Encoding.UTF8);
+#endif
             }
 
             this.statusText.Text = String.Format("Saved {0}.", String.Join(", ", savedFileList));
