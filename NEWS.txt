@@ -1,6 +1,10 @@
 NEWS
 =====
 
+2015-07-11  Version 0.0.2
+---------------------------
+* Automatic fold detection.
+
 2012-09-22  Version 0.0.1
 ---------------------------
 * Initial release.
