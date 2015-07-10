@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Clean;Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+	<MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\.build</MSBuildCommunityTasksPath>
+	<OutputDir>$(MSBuildProjectDirectory)\output</OutputDir>
+	<KiritoriMageVersion>0.0.2</KiritoriMageVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+     <DocFiles Include="LICENSE.txt" />
+     <DocFiles Include="README.md" />
+     <DocFiles Include="NEWS.txt" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildProjectDirectory)\.build\MSBuild.Community.Tasks.Targets"/>
+  
+  <Target Name="Clean">
+    <RemoveDir Directories="$(OutputDir)" />
+  </Target>
+  
+  <Target Name="Version">
+    <Time>
+      <Output TaskParameter="Year" PropertyName="Year" />
+    </Time>
+
+    <Message Text="Version: $(KiritoriMageVersion)"/>
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Clean">
+    <MSBuild Targets="Build" Projects="$(MSBuildProjectDirectory)\KiritoriMage\KiritoriMage.csproj"
+             Properties="Configuration=Release;OutputPath=$(OutputDir)\KiritoriMage" />
+
+	<ItemGroup>
+		<RemoveFiles Include="$(OutputDir)\KiritoriMage\*.pdb" />
+        <!-- obviously unnessessary opencv dlls -->
+		<RemoveFiles Include="$(OutputDir)\KiritoriMage\dll\*\opencv_ffmpeg*.dll" />
+	</ItemGroup>
+	<Delete Files="@(RemoveFiles)" />
+	
+	<Copy SourceFiles="@(DocFiles)" DestinationFolder="$(OutputDir)\KiritoriMage" />
+  </Target>
+  
+  <Target Name="Package" DependsOnTargets="Clean;Archive" />
+  
+  <Target Name="Archive" DependsOnTargets="Build">
+    <ItemGroup>
+      <Files Include="$(OutputDir)\KiritoriMage\**\*" />
+	</ItemGroup>
+	
+	<Zip Files="@(Files)"
+	     WorkingDirectory="$(OutputDir)"
+	     ZipFileName="$(OutputDir)\KiritoriMage-$(KiritoriMageVersion).zip" />
+  </Target>
+</Project>
+
