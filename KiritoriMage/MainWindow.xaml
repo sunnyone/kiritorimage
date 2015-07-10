@@ -66,8 +66,8 @@
                             <ControlTemplate TargetType="Thumb">
                                 <Canvas>
                                     <!-- to make clicking easy -->
-                                    <Rectangle Height="18" Width="18" Opacity="0" Fill="Black"/>
-                                    <Polygon Points="0,0 18,0 0,18" Stroke="Black" Fill="Gray" />
+                                    <Rectangle Height="18" Width="18" Opacity="0" Fill="Black" Cursor="Hand" />
+                                    <Polygon Points="0,0 18,0 0,18" Stroke="Black" Fill="Gray" Cursor="Hand" />
                                 </Canvas>
                             </ControlTemplate>
                         </Thumb.Template>
