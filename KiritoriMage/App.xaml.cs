@@ -29,18 +29,15 @@ using System.Windows;
 
 namespace KiritoriMage
 {
-    /// <summary>
-    /// App.xaml の相互作用ロジック
-    /// </summary>
     public partial class App : Application
     {
-        public string ArgsSpecifiedFilename { get; set; }
+        public string[] ArgsSpecifiedFilenames { get; set; }
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (e.Args.Length != 0)
             {
-                ArgsSpecifiedFilename = e.Args[0];
+                ArgsSpecifiedFilenames = e.Args;
             }
         }
     }

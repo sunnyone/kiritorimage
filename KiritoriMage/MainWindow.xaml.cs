@@ -64,7 +64,21 @@ namespace KiritoriMage
             //AddHandler(FrameworkElement.MouseDownEvent, new MouseButtonEventHandler(imageMain_MouseDown), true);
         }
 
-        private void LoadImageFromFile(string path) {
+        private void loadImageFromFileWithBackimage(string[] paths)
+        {
+            var pathsSorted = paths.OrderBy(x => x).ToArray();
+            if (pathsSorted.Length > 0)
+            {
+                loadImageFromFile(pathsSorted[0]);
+            }
+
+            if (pathsSorted.Length > 1)
+            {
+                setRegionFromFolds(pathsSorted[1]);
+            }
+        }
+
+        private void loadImageFromFile(string path) {
             BitmapImage bitmapImage = null;
             try
             {
@@ -88,6 +102,22 @@ namespace KiritoriMage
             this.Title = String.Format(MainWindowTitleFormat, System.IO.Path.GetFileName(path));
             statusText.Text = String.Format("Loaded {0} ({1},{2})",
                 path, bitmapImage.PixelWidth, bitmapImage.PixelHeight);
+        }
+
+        private void setRegionFromFolds(string backFilename)
+        {
+            double score;
+            try
+            {
+                var folds = FoldDetectUtil.DetectFolds(backFilename, out score);
+                this.imageViewModel.SetFoldRegions(folds);
+
+                statusText.Text = String.Format("Regions are detected by folds (score: {0:0.0##}).", score);
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = String.Format("Failed to detect region from folds: {0}", ex.Message);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -135,10 +165,10 @@ namespace KiritoriMage
 
         private void Window_ContentRendered(object sender, EventArgs e)
         {
-            string filename = ((App)Application.Current).ArgsSpecifiedFilename;
-            if (filename != null)
+            var argsFilenames = ((App)Application.Current).ArgsSpecifiedFilenames;
+            if (argsFilenames != null)
             {
-                LoadImageFromFile(filename);
+                loadImageFromFileWithBackimage(argsFilenames);
             }
         }
 
@@ -241,7 +271,7 @@ namespace KiritoriMage
                 return;
             }
 
-            LoadImageFromFile(filenames[0]);
+            loadImageFromFileWithBackimage(filenames);
         }
 
         private void imageMain_SizeChanged(object sender, SizeChangedEventArgs e)

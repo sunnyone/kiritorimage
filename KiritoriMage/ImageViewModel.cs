@@ -125,5 +125,36 @@ namespace KiritoriMage
             this.HorizontalSplitPositionBarViewModel.PositionList.Clear();
             this.MarkedPointList.Clear();
         }
+
+        public void SetFoldRegions(int[] folds)
+        {
+            if (folds.Length != 3) {
+                throw new ArgumentException("Unsupported folds length.");
+            }
+
+            var xs = new[] { 0 }.Concat(folds).ToArray();
+            var positionList = new List<PointInt>();
+
+            for (var i = 0; i < xs.Length; i++)
+            {
+                var left = xs[i];
+                var right = (i == xs.Length - 1) ? this.LoadedBitmapWidth : xs[i+1];
+                var centerX = (left + right) / 2;
+                var centerY = (int) (this.LoadedBitmapHeight * 0.45); // 0.5 - (about text height)
+
+                if (i != xs.Length - 1)
+                {
+                    this.HorizontalSplitPositionBarViewModel.PositionList.Add(new SplitPositionItem { Position = right });
+                }
+                positionList.Add(new PointInt(centerX, centerY));
+            }
+
+            // TODO: Supports left-to-right
+            var reorderedPoints = (new int[] { 1, 0, 3, 2 }).Select(i => positionList[i]);
+            foreach (var point in reorderedPoints)
+            {
+                this.MarkedPointList.Add(point);
+            }
+        }
     }
 }
