@@ -70,7 +70,6 @@ namespace KiritoriMage
                 blur++;
 
             var mat = matSrc.CvtColor(ColorConversion.BgrToGray)
-                            .MedianBlur(blur)
                             .AdaptiveThreshold(255, AdaptiveThresholdType.MeanC, ThresholdType.Binary, blur, 1);
             mat = ~mat;
 
