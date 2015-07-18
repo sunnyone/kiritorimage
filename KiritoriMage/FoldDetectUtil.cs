@@ -39,11 +39,8 @@ namespace KiritoriMage
     public class FoldDetectUtil
     {
         private const int BlurWidthDivider = 200;
-        private const int BestMatchThreshold = 0;
-        private const double FoldWidthMean = 0.013;
-        private const double FoldWidthStddev = 0.005;
-        private const double LeftRightRatioMean = 0.5;
-        private const double LeftRightRatioStddev = 0.05;
+        private const double FoldWidthThreshold = 0.03;
+        private const double PermissiveRatioDistance = 0.1;
 
         private static IEnumerable<IEnumerable<T>> getCombinations<T>(IEnumerable<T> items, int count)
         {
@@ -60,7 +57,7 @@ namespace KiritoriMage
                 return getCombinations(remains, count - 1).Select(x => (new T[] { item }).Concat(x));
             });
         }
-
+        
         // TODO: supports left-to-right image
         public static int[] DetectFolds(string backFilename, out double score)
         {
@@ -92,50 +89,45 @@ namespace KiritoriMage
             
             var combinations = getCombinations(rects, 4).ToArray();
 
-            var bestMatchRectSet = combinations.Select(_rectCands =>
+            var rectSets = combinations.Select(_rectCands =>
             {
                 var rectCands = _rectCands.OrderBy(x => x.X).ToArray();
 
-                var dataMat = new CvMat(1, 10, MatrixType.F32C1);
-
-                var imageWidthD = (double)matSrc.Width;
-                var ratios = rectCands.Select(r => new { 
-                    Left = r.X / imageWidthD, 
-                    Right = (r.X + r.Width) / imageWidthD,
-                    Width = r.Width / imageWidthD }).ToArray();
+                var imageWidth = (double)matSrc.Width;
+                var widthRatios = rectCands.Select(r => new { 
+                    Left = r.X / imageWidth, 
+                    Right = (r.X + r.Width) / imageWidth,
+                    Width = r.Width / imageWidth }).ToArray();
 
                 // TODO: zero division check
-                double leftThin = ratios[0].Left;
-                double rightThin = 1 - ratios[3].Right;
+                double leftThin = widthRatios[0].Left;
+                double rightThin = 1 - widthRatios[3].Right;
                 double thinRatio = leftThin / (leftThin + rightThin);
 
-                double leftFat = ratios[1].Left - ratios[0].Right;
-                double rightFat = ratios[3].Left - ratios[2].Right;
+                double leftFat = widthRatios[1].Left - widthRatios[0].Right;
+                double rightFat = widthRatios[3].Left - widthRatios[2].Right;
                 double fatRatio = leftFat / (leftFat + rightFat);
 
-                var widthDist = new MathNet.Numerics.Distributions.Normal(FoldWidthMean, FoldWidthStddev);
-                var widthLikes = ratios.Select(r => widthDist.DensityLn(r.Width));
+                double thinFatDistance = Math.Sqrt(Math.Pow(fatRatio - 0.5, 2) + Math.Pow(thinRatio - 0.5, 2));
+                return new { Rects = rectCands, WidthRatios = widthRatios, ThinFatDistance = thinFatDistance, ThinRatio = thinRatio, FatRatio = fatRatio, };
+            });
 
-                var thinFatDist = new MathNet.Numerics.Distributions.Normal(LeftRightRatioMean, LeftRightRatioStddev);
-                var pThin = thinFatDist.DensityLn(thinRatio);
-                var pFat = thinFatDist.DensityLn(fatRatio);
-
-                var likes = widthLikes.Concat(new double[] { pThin, pFat });
-                var like = likes.Sum();
-
-                return new { Like = like, Rects = rectCands };
-            }).OrderByDescending(x => x.Like).First();
-            
-            if (bestMatchRectSet.Like < BestMatchThreshold)
+            rectSets = rectSets.Where(r => r.WidthRatios.All(x => x.Width < FoldWidthThreshold)).ToArray();
+            if (!rectSets.Any())
             {
-                throw new FoldDetectException(string.Format("Matched rect is not found (score: {0})", bestMatchRectSet.Like));
+                throw new FoldDetectException("All fold rects are too fat.");
             }
+
+            var bestMatchRectSet = rectSets.OrderBy(x => x.ThinFatDistance).First();
+            if (bestMatchRectSet.ThinFatDistance > PermissiveRatioDistance)
+            {
+                throw new FoldDetectException(string.Format("Matched rect is not found (score: {0})", bestMatchRectSet.ThinFatDistance));
+            }
+            score = bestMatchRectSet.ThinFatDistance;
 
             int fold0 = bestMatchRectSet.Rects[0].Right;
             int fold1 = bestMatchRectSet.Rects[1].Right;
             int fold2 = bestMatchRectSet.Rects[3].Right;
-
-            score = bestMatchRectSet.Like;
             return new int[] { fold0, fold1, fold2 };
         }
     }
