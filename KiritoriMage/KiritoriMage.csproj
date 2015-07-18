@@ -40,9 +40,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Numerics">
-      <HintPath>..\packages\MathNet.Numerics.3.7.0\lib\net40\MathNet.Numerics.dll</HintPath>
-    </Reference>
     <Reference Include="OpenCvSharp">
       <HintPath>..\packages\OpenCvSharp-AnyCPU.2.4.10.20150604\lib\net40\OpenCvSharp.dll</HintPath>
     </Reference>
