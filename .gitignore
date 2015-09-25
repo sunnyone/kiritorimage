@@ -24,3 +24,5 @@ obj/
 _ReSharper*/
 /packages/
 /output/
+
+!/.nuget/NuGet.exe
